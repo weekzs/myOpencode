@@ -27,5 +27,21 @@ git remote add origin https://github.com/weekzs/myOpencode.git
 #    git push 是推送本地代码到远程，-u 是 --set-upstream 的简写，设置本地 main 分支跟踪远程 origin/main 分支
 #    后续再推送只需执行 git push 即可，无需重复指定 origin 和 main
 git push -u origin main
+
+
+# 清除单个文件（比如 README.md）
+git rm --cached README.md
+
+# 清除中文文件夹（建议加引号，避免Git识别错误）
+git rm --cached "OCR学习笔记"
+
+```
+
+```bash
+#查看提交历史
+git log
+#撤销提交
+git revert <commit_id>
+
 ```
 
