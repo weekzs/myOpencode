@@ -26,5 +26,8 @@ git remote show
 git status #查看当前状态
 git restore 文件名  # Git 2.23+ 版本推荐
 git remote rm origin 
+git reset --hard id  #这个是之后的版本都不需要的回滚
+git push -g #强制推送
+git revert -n id  这个是新的版本
 ```
 
