@@ -33,9 +33,11 @@ git revert -n id  这个是新的版本
 rm -rf skillport
 ```
 
-# ssh传输大文件
+# 1、ssh传输大文件
 
-> 这里的密码是zjl2581445
+> - 这里默认不设置密码
+> - 然后要是改了密钥
+>   - git init要重新设置，不然有很多错误
 
 这是一个 SSH 密钥认证失败的问题。以下是中文解决方案：
 
@@ -157,3 +159,4 @@ git remote set-url origin https://github.com/用户名/仓库名.git
 ```
 
 需要进一步帮助的话，请告诉我你执行 `ssh -T git@github.com` 时看到的具体错误信息。
+
