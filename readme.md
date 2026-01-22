@@ -1,3 +1,5 @@
+# 1、基础命令
+
 ```bash
 echo "# myOpencode" >> README.md
 git init
@@ -33,7 +35,7 @@ git revert -n id  这个是新的版本
 rm -rf skillport
 ```
 
-# 1、ssh传输大文件
+# 2、ssh传输大文件
 
 > 1. 这里默认不设置密码
 > 2. 然后要是改了密钥
@@ -163,3 +165,164 @@ git remote set-url origin https://github.com/用户名/仓库名.git
 
 需要进一步帮助的话，请告诉我你执行 `ssh -T git@github.com` 时看到的具体错误信息。
 
+## 3、删除历史提交
+
+问题在于 **Git 历史记录中仍然包含这个大文件**！即使你现在删除了，Git 仍然记得这个文件曾经存在过。
+
+## **根本原因：**
+1. 你之前已经把这个大文件提交到了 Git 历史中
+2. 虽然现在删除了，但 Git 仍然保留了历史记录
+3. GitHub 在接收推送时会检查整个历史，发现有大文件就拒绝
+
+## **解决方案：从历史中彻底删除大文件**
+
+### **方法 1：使用 BFG Repo-Cleaner（推荐）**
+```bash
+# 1. 下载 BFG
+# macOS: brew install bfg
+# 或下载 JAR 文件：https://rtyley.github.io/bfg-repo-cleaner/
+
+# 2. 备份当前仓库（重要！）
+cp -r myOpencode myOpencode-backup
+
+# 3. 删除所有历史中的 zip 文件
+java -jar bfg.jar --strip-blobs-bigger-than 100M .
+
+# 4. 清理并重新打包
+git reflog expire --expire=now --all
+git gc --prune=now --aggressive
+
+# 5. 强制推送
+git push -f origin main
+```
+
+### **方法 2：使用 git filter-branch**
+```bash
+# 1. 找到并删除所有历史中的 zip 文件
+git filter-branch --tree-filter "find . -name '*.zip' -type f -delete" HEAD
+
+# 或者更精确地删除特定文件
+git filter-branch --force --index-filter \
+  "git rm --cached --ignore-unmatch 'express-delivery-web (2).zip'" \
+  --prune-empty --tag-name-filter cat -- --all
+
+# 2. 清理
+git for-each-ref --format="delete %(refname)" refs/original | git update-ref --stdin
+git reflog expire --expire=now --all
+git gc --prune=now --aggressive
+
+# 3. 强制推送
+git push -f origin main
+```
+
+### **方法 3：最简单的方法 - 重新开始（如果代码不多）**
+```bash
+# 1. 备份当前代码（不包括 .git 文件夹）
+mkdir ../myOpencode-backup
+cp -r . ../myOpencode-backup
+
+# 2. 删除本地仓库
+cd ..
+rm -rf myOpencode
+
+# 3. 重新克隆（空的）仓库
+git clone git@github.com:weekzs/myOpencode.git
+cd myOpencode
+
+# 4. 只复制必要的文件，不要复制 zip 文件
+cp -r ../myOpencode-backup/readme.md .
+cp -r ../myOpencode-backup/skills .
+# 注意：不要复制 zip 文件！
+
+# 5. 确保 .gitignore 正确
+echo "*.zip" > .gitignore
+echo "*.tar.gz" >> .gitignore
+echo "*.rar" >> .gitignore
+
+# 6. 提交并推送
+git add .
+git commit -m "重新开始，移除历史大文件"
+git push origin main
+```
+
+### **方法 4：检查当前历史中的大文件**
+```bash
+# 查看哪些提交包含大文件
+git log --all --stat | grep -B 5 -A 5 "zip"
+
+# 查看文件大小历史
+git rev-list --objects --all | \
+  grep "$(git verify-pack -v .git/objects/pack/*.idx | \
+  sort -k 3 -n | tail -10 | awk '{print$1}')"
+
+# 查找大文件的提交
+git log --oneline --branches -- express-delivery-web\ \(2\).zip
+```
+
+## **推荐的最简单解决方案：**
+```bash
+# 1. 创建一个新的干净分支
+git checkout --orphan clean-branch
+git add .
+git commit -m "新的干净提交"
+
+# 2. 删除原来的 main 分支
+git branch -D main
+
+# 3. 重命名当前分支为 main
+git branch -m main
+
+# 4. 强制推送到远程
+git push -f origin main
+```
+
+## **预防措施：**
+```bash
+# 在提交前检查文件大小
+git add --dry-run .
+
+# 或者写个钩子检查
+cat > .git/hooks/pre-commit << 'EOF'
+#!/bin/bash
+MAX_FILE_SIZE=104857600  # 100MB in bytes
+
+# 检查所有将要提交的文件
+files=$(git diff --cached --name-only)
+for file in $files; do
+    size=$(git cat-file -s :"$file" 2>/dev/null || wc -c < "$file")
+    if [ "$size" -gt "$MAX_FILE_SIZE" ]; then
+        echo "错误: $file 超过 100MB (大小: $((size/1048576))MB)"
+        echo "请使用 Git LFS 或移除该文件"
+        exit 1
+    fi
+done
+EOF
+
+chmod +x .git/hooks/pre-commit
+```
+
+## **立即行动方案：**
+```bash
+# 如果你觉得上面的方法太复杂，试试这个：
+# 1. 创建新的干净仓库
+cd ..
+mkdir myOpencode-clean
+cd myOpencode-clean
+git init
+git remote add origin git@github.com:weekzs/myOpencode.git
+
+# 2. 只添加必要的文件
+cp -r ../myOpencode/readme.md .
+cp -r ../myOpencode/skills .
+# 不复制 zip 文件！
+
+# 3. 设置 .gitignore
+echo "*.zip" > .gitignore
+
+# 4. 强制推送
+git add .
+git commit -m "干净版本，无大文件"
+git push -f origin main
+```
+
+**重要提醒**：这些方法都会重写 Git 历史，如果你和他人协作，需要通知他们重新克隆仓库。
