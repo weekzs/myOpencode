@@ -8,7 +8,7 @@ git commit -m "first commit"
 git branch -M main
 git remote add origin https://github.com/weekzs/myOpencode.git
 git push -u origin main
-# 清除单个文件（比如 README.md）
+# 清除单个文件（比如 README.md），这个是删除仓库里面的文件
 git rm --cached README.md
 # 清除中文文件夹（建议加引号，避免Git识别错误）
 git rm --cached "OCR学习笔记"
@@ -426,6 +426,61 @@ git merge master
 git push origin <个人分支名>
 ```
 
+# 5、暂存相关
+
+
+
+| 命令                                | 作用                             | 适用场景                       |
+| :---------------------------------- | :------------------------------- | :----------------------------- |
+| **`git reset HEAD <文件名>`**       | 将**指定文件**从暂存区移回工作区 | 精确取消暂存特定文件           |
+| **`git reset HEAD`**                | 将**所有文件**移出暂存区         | 全部重来，重新选择要添加的文件 |
+| **`git restore --staged <文件名>`** | 取消暂存指定文件（Git 2.23+）    | 较新的 Git 版本，更直观        |
+
+```bash
+# 只取消暂存 server.ts 文件
+git reset HEAD express-delivery-web/backend/src/server.ts
+
+# 取消所有暂存的文件
+git reset HEAD
+
+# 使用 restore 命令取消暂存
+git restore --staged express-delivery-web/frontend/package.json
 ```
 
+## 如何查看暂存区内容
+
+查看暂存区最直接的方法就是使用 `git status`，但Git还提供了更详细的查看方式：
+
+| 命令                    | 显示内容                             | 示例输出说明                     |
+| :---------------------- | :----------------------------------- | :------------------------------- |
+| **`git status`**        | 显示**所有**状态，包括“待提交的变更” | 绿色文件就是暂存区内容           |
+| **`git status -s`**     | 简洁状态显示，首列就是暂存区状态     | `A`=已暂存新文件，`M`=已暂存修改 |
+| **`git diff --staged`** | **详细对比**暂存区与上一次提交的差异 | 最完整的暂存区内容查看方式       |
+
+**1. 使用 `git status` 查看：**
+
+```bash
+$ git status
+On branch main
+Changes to be committed:          # ← 这下面的就是暂存区内容
+  (use "git restore --staged <file>..." to unstage)
+        modified:   README.md     # ← 绿色显示，已暂存
+        new file:   config.yaml   # ← 绿色显示，已暂存
+
+Changes not staged for commit:    # ← 这下面的未暂存
+  (use "git add <file>..." to update what will be committed)
+        modified:   server.ts     # ← 红色显示，未暂存
 ```
+
+**2. 使用简洁模式 `git status -s`：**
+
+```bash
+$ git status -s
+M  README.md     # 第1列=M：已暂存的修改 (staged)
+A  config.yaml   # 第1列=A：已暂存的新文件 (staged)
+ M server.ts     # 第1列=空格：未暂存的修改 (unstaged)
+```
+
+- **首字母含义**：`M`=修改，`A`=新增，`D`=删除，`R`=重命名
+- **第1列**：暂存区状态（绿色）
+- **第2列**：工作区状态（红色）
