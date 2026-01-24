@@ -329,10 +329,16 @@ git push -f origin main
 
 # 4、git提交不同分支
 
-> 查看所有分支：
+> 1、查看所有分支：
 >
 > ```bash
 > git branch -a
+> ```
+>
+> 2、强制提交分支：
+>
+> ```bash
+> git checkout -f main
 > ```
 
 **1. 克隆远程仓库到本地**
@@ -420,3 +426,6 @@ git merge master
 git push origin <个人分支名>
 ```
 
+```
+
+```
