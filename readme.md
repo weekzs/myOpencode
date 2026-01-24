@@ -410,6 +410,8 @@ git push origin <分支名>
 ```bash
 git checkout master
 git pull origin master
+#强行终止
+git merge --abort
 ```
 
 - 切换回个人分支并合并主分支代码：
