@@ -14,7 +14,7 @@ import uploadRoutes from './routes/uploads';
 import { errorHandler, notFound } from './middleware/errorHandler';
 
 const app = express();
-const port = process.env.PORT || 3001;
+const port = process.env.PORT || 3000;
 
 // 初始化Prisma客户端
 export const prisma = new PrismaClient();
