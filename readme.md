@@ -165,7 +165,7 @@ git remote set-url origin https://github.com/用户名/仓库名.git
 
 需要进一步帮助的话，请告诉我你执行 `ssh -T git@github.com` 时看到的具体错误信息。
 
-## 3、删除历史提交
+# 3、删除历史提交
 
 问题在于 **Git 历史记录中仍然包含这个大文件**！即使你现在删除了，Git 仍然记得这个文件曾经存在过。
 
@@ -326,3 +326,97 @@ git push -f origin main
 ```
 
 **重要提醒**：这些方法都会重写 Git 历史，如果你和他人协作，需要通知他们重新克隆仓库。
+
+# 4、git提交不同分支
+
+> 查看所有分支：
+>
+> ```bash
+> git branch -a
+> ```
+
+**1. 克隆远程仓库到本地**
+
+```bash
+git clone <远程仓库地址>
+```
+
+若需要直接拉取特定分支：
+
+```bash
+git clone -b <分支名> <远程仓库地址>
+```
+
+**2. 创建并切换到个人分支**
+
+如果需要新建分支：
+
+```bash
+git checkout -b <分支名>
+```
+
+切换到已有分支：
+
+```bash
+git checkout <分支名>
+```
+
+查看当前分支状态：
+
+```bash
+git branch
+```
+
+**3. 添加修改并提交到本地仓库**
+
+- 查看修改状态：
+
+```bash
+git status
+```
+
+- 添加文件到暂存区：
+
+```bash
+git add <文件名> 或 git add
+```
+
+- 提交更改到本地仓库：
+
+```bash
+git commit -m "提交说明"
+```
+
+**4. 推送分支到远程仓库**
+
+将本地分支推送到远程：
+
+```bash
+git push origin <分支名>
+```
+
+如果远程不存在该分支，Git 会自动创建。
+
+**5. 更新主分支代码到个人分支（可选）**
+
+- 切换到主分支并拉取最新代码：
+
+```bash
+git checkout master
+git pull origin master
+```
+
+- 切换回个人分支并合并主分支代码：
+
+```bash
+git checkout <个人分支名>
+#这个是将master修改的分支合并
+git merge master
+```
+
+- 再次推送更新后的个人分支：
+
+```bash
+git push origin <个人分支名>
+```
+
